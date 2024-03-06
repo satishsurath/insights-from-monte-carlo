@@ -25,12 +25,16 @@ def simulate():
         inflation_rate = np.random.choice(inflation_rates, p=inflation_probs)
         final_value = initial_capital * ((1 + cagr_rate) ** 10) / ((1 + inflation_rate) ** 10)
         final_values.append(final_value)
+    
+    negative_const = 1.00
+    percentile_5th = np.percentile(final_values, 5)*negative_const
+    percentile_95th = np.percentile(final_values, 95)*negative_const
 
     insights = {
         'mean': np.mean(final_values),
         'std_deviation': np.std(final_values),
-        '5th_percentile': np.percentile(final_values, 5),
-        '95th_percentile': np.percentile(final_values, 95),
+        'percentile_5th': percentile_5th,
+        'percentile_95th': percentile_95th,
     }
 
     return jsonify(insights)

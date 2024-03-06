@@ -40,49 +40,66 @@
     <div id="results"></div>
 
     <script>
+        // Function to update slider value display
         function updateSliderValue(sliderId) {
-            var val = $('#' + sliderId).val();
-            $('#' + sliderId + '_val').text(val);
+            var value = $('#' + sliderId).val();
+            $('#' + sliderId + '_val').text(value);
         }
-
+    
+        // Function to validate inputs and run the Monte Carlo simulation
         function validateAndRunSimulation() {
+            // Collecting CAGR probabilities from sliders
             var cagr_probs = [
                 parseFloat($('#cagr_5').val()),
                 parseFloat($('#cagr_7_5').val()),
                 parseFloat($('#cagr_9').val()),
                 parseFloat($('#cagr_10').val()),
             ];
+            // Collecting inflation probabilities from sliders
             var inflation_probs = [
                 parseFloat($('#inflation_2_34').val()),
                 parseFloat($('#inflation_2_5').val()),
                 parseFloat($('#inflation_3').val()),
                 parseFloat($('#inflation_5').val()),
             ];
-
-            // Validate sums
+    
+            // Checking if the sum of probabilities exceeds 1
             if (cagr_probs.reduce((a, b) => a + b, 0) > 1.0 || inflation_probs.reduce((a, b) => a + b, 0) > 1.0) {
-                alert('The sum of probabilities for either CAGR or Inflation Rates cannot exceed 1.');
+                alert('The sum of probabilities for CAGR or Inflation Rates cannot exceed 1.');
                 return;
             }
-
+    
+            // AJAX request to Flask backend with CAGR and inflation probabilities
             $.ajax({
                 url: '/simulate',
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify({cagr_probs: cagr_probs, inflation_probs: inflation_probs}),
                 success: function(response) {
-                    $('#results').html(`
-                        <p>Mean: ${response.mean.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
-                        <p>Standard Deviation: ${response.std_deviation.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
-                        <p>5th Percentile: ${response['5th_percentile'].toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
-                        <p>95th Percentile: ${response['95th_percentile'].toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
-                    `);
-                },
+    // Function to safely format numbers
+    function formatNumber(number) {
+        if (number !== undefined && !isNaN(number)) {
+            return number.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        } else {
+            return "N/A"; // Return a placeholder or an indication of unavailable data
+        }
+    }
+
+    // Displaying the simulation insights with safe formatting
+    $('#results').html(`
+        <p>Mean Value: The average final value of the investment over 10 years is approximately $${formatNumber(response.mean)}.</p>
+        <p>Standard Deviation: The standard deviation is approximately $${formatNumber(response.std_deviation)}, indicating variability in potential outcomes.</p>
+        <p>5th Percentile: At the 5th percentile ($${formatNumber(response.percentile_5th)}), suggesting a lower bound on expected outcomes under less favorable conditions.</p>
+        <p>95th Percentile: At the 95th percentile ($${formatNumber(response.percentile_95th)}), indicating the upper bound of expected outcomes under the most favorable conditions.</p>
+    `);
+},
+
                 error: function(error) {
                     console.log('Error:', error);
                 }
             });
         }
     </script>
+    
 </body>
 </html>
