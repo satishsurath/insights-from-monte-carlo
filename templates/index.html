@@ -1,0 +1,62 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Monte Carlo Simulation</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
+    <h2>Monte Carlo Simulation Inputs</h2>
+    <div>
+        <label>CAGR Probabilities:</label>
+        <input type="range" id="cagr_5" min="0" max="1" step="0.01" value="0.25">
+        <input type="range" id="cagr_7_5" min="0" max="1" step="0.01" value="0.25">
+        <input type="range" id="cagr_9" min="0" max="1" step="0.01" value="0.25">
+        <input type="range" id="cagr_10" min="0" max="1" step="0.01" value="0.25">
+    </div>
+    <div>
+        <label>Inflation Probabilities:</label>
+        <input type="range" id="inflation_2_34" min="0" max="1" step="0.01" value="0.25">
+        <input type="range" id="inflation_2_5" min="0" max="1" step="0.01" value="0.25">
+        <input type="range" id="inflation_3" min="0" max="1" step="0.01" value="0.25">
+        <input type="range" id="inflation_5" min="0" max="1" step="0.01" value="0.25">
+    </div>
+    <button onclick="runSimulation()">Run Simulation</button>
+
+    <h3>Results:</h3>
+    <div id="results"></div>
+
+    <script>
+        function runSimulation() {
+            var cagr_probs = [
+                parseFloat($('#cagr_5').val()),
+                parseFloat($('#cagr_7_5').val()),
+                parseFloat($('#cagr_9').val()),
+                parseFloat($('#cagr_10').val()),
+            ];
+            var inflation_probs = [
+                parseFloat($('#inflation_2_34').val()),
+                parseFloat($('#inflation_2_5').val()),
+                parseFloat($('#inflation_3').val()),
+                parseFloat($('#inflation_5').val()),
+            ];
+
+            $.ajax({
+                url: '/simulate',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({cagr_probs: cagr_probs, inflation_probs: inflation_probs}),
+                success: function(response) {
+                    $('#results').html(
+                        'Mean: ' + response.mean + '<br>' +
+                        'Standard Deviation: ' + response.std_deviation + '<br>' +
+                        '5th Percentile: ' + response['5th_percentile'] + '<br>' +
+                        '95th Percentile: ' + response['95th_percentile']
+                    );
+                }
+            });
+        }
+    </script>
+</body>
+</html>

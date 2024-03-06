@@ -1,2 +1,44 @@
 # insights-from-monte-carlo
 Insights on inflation-adjusted 10year return based on CAGR monte-carlo simulations based on given probabilities
+
+
+
+
+1. Install Local Env
+=====================
+
+Input:
+
+```bash
+conda create -n insights-from-monte-carlo python=3.11
+```
+
+and final output:
+
+```bash
+
+# To activate this environment, use
+#
+#     $ conda activate insights-from-monte-carlo
+#
+# To deactivate an active environment, use
+#
+#     $ conda deactivate
+```
+
+
+2. Install Required Packages
+============================
+Input:
+
+```bash
+pip install -r requirements.txt
+```
+
+3. Run the Flask App
+====================
+Input:
+
+```bash
+python app.py
+```
