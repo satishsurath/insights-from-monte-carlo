@@ -1,34 +1,51 @@
-<!-- templates/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Monte Carlo Simulation</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <style>
+        .slider-container {
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 <body>
     <h2>Monte Carlo Simulation Inputs</h2>
-    <div>
-        <label>CAGR Probabilities:</label>
-        <input type="range" id="cagr_5" min="0" max="1" step="0.01" value="0.25">
-        <input type="range" id="cagr_7_5" min="0" max="1" step="0.01" value="0.25">
-        <input type="range" id="cagr_9" min="0" max="1" step="0.01" value="0.25">
-        <input type="range" id="cagr_10" min="0" max="1" step="0.01" value="0.25">
+    <div class="slider-container">
+        <h3>CAGR Probabilities</h3>
+        <p>5%: <span id="cagr_5_val">0.25</span></p>
+        <input type="range" id="cagr_5" min="0" max="1" step="0.01" value="0.25" oninput="updateSliderValue('cagr_5')">
+        <p>7.5%: <span id="cagr_7_5_val">0.25</span></p>
+        <input type="range" id="cagr_7_5" min="0" max="1" step="0.01" value="0.25" oninput="updateSliderValue('cagr_7_5')">
+        <p>9%: <span id="cagr_9_val">0.25</span></p>
+        <input type="range" id="cagr_9" min="0" max="1" step="0.01" value="0.25" oninput="updateSliderValue('cagr_9')">
+        <p>10%: <span id="cagr_10_val">0.25</span></p>
+        <input type="range" id="cagr_10" min="0" max="1" step="0.01" value="0.25" oninput="updateSliderValue('cagr_10')">
     </div>
-    <div>
-        <label>Inflation Probabilities:</label>
-        <input type="range" id="inflation_2_34" min="0" max="1" step="0.01" value="0.25">
-        <input type="range" id="inflation_2_5" min="0" max="1" step="0.01" value="0.25">
-        <input type="range" id="inflation_3" min="0" max="1" step="0.01" value="0.25">
-        <input type="range" id="inflation_5" min="0" max="1" step="0.01" value="0.25">
+    <div class="slider-container">
+        <h3>Inflation Probabilities</h3>
+        <p>2.34%: <span id="inflation_2_34_val">0.25</span></p>
+        <input type="range" id="inflation_2_34" min="0" max="1" step="0.01" value="0.25" oninput="updateSliderValue('inflation_2_34')">
+        <p>2.5%: <span id="inflation_2_5_val">0.25</span></p>
+        <input type="range" id="inflation_2_5" min="0" max="1" step="0.01" value="0.25" oninput="updateSliderValue('inflation_2_5')">
+        <p>3%: <span id="inflation_3_val">0.25</span></p>
+        <input type="range" id="inflation_3" min="0" max="1" step="0.01" value="0.25" oninput="updateSliderValue('inflation_3')">
+        <p>5%: <span id="inflation_5_val">0.25</span></p>
+        <input type="range" id="inflation_5" min="0" max="1" step="0.01" value="0.25" oninput="updateSliderValue('inflation_5')">
     </div>
-    <button onclick="runSimulation()">Run Simulation</button>
+    <button onclick="validateAndRunSimulation()">Run Simulation</button>
 
     <h3>Results:</h3>
     <div id="results"></div>
 
     <script>
-        function runSimulation() {
+        function updateSliderValue(sliderId) {
+            var val = $('#' + sliderId).val();
+            $('#' + sliderId + '_val').text(val);
+        }
+
+        function validateAndRunSimulation() {
             var cagr_probs = [
                 parseFloat($('#cagr_5').val()),
                 parseFloat($('#cagr_7_5').val()),
@@ -42,18 +59,27 @@
                 parseFloat($('#inflation_5').val()),
             ];
 
+            // Validate sums
+            if (cagr_probs.reduce((a, b) => a + b, 0) > 1.0 || inflation_probs.reduce((a, b) => a + b, 0) > 1.0) {
+                alert('The sum of probabilities for either CAGR or Inflation Rates cannot exceed 1.');
+                return;
+            }
+
             $.ajax({
                 url: '/simulate',
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify({cagr_probs: cagr_probs, inflation_probs: inflation_probs}),
                 success: function(response) {
-                    $('#results').html(
-                        'Mean: ' + response.mean + '<br>' +
-                        'Standard Deviation: ' + response.std_deviation + '<br>' +
-                        '5th Percentile: ' + response['5th_percentile'] + '<br>' +
-                        '95th Percentile: ' + response['95th_percentile']
-                    );
+                    $('#results').html(`
+                        <p>Mean: ${response.mean.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                        <p>Standard Deviation: ${response.std_deviation.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                        <p>5th Percentile: ${response['5th_percentile'].toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                        <p>95th Percentile: ${response['95th_percentile'].toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                    `);
+                },
+                error: function(error) {
+                    console.log('Error:', error);
                 }
             });
         }
